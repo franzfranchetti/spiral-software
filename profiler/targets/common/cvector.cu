@@ -46,10 +46,8 @@ void initialize(int argc, char **argv) {
 	// buffers.  The *input* buffer should be dimensioned by COLUMNS, while the
 	// *output* buffer should be dimensioned by ROWS
 	
-	cudaMallocHost ( &Input,  sizeof(cufftDoubleReal) * COLUMNS );
-	checkCudaErrors(cudaGetLastError());
-	cudaMallocHost ( &Output, sizeof(cufftDoubleReal) * ROWS );
-	checkCudaErrors(cudaGetLastError());
+	Input =  (cufftDoubleReal*) calloc(sizeof(cufftDoubleReal), COLUMNS );
+	Output = (cufftDoubleReal*) calloc(sizeof(cufftDoubleReal), ROWS );
 
 	cudaMalloc     ( &dev_in,  sizeof(cufftDoubleReal) * COLUMNS );
 	checkCudaErrors(cudaGetLastError());
@@ -60,8 +58,8 @@ void initialize(int argc, char **argv) {
 }
 
 void finalize() {
-	cudaFreeHost (Output);
-	cudaFreeHost (Input);
+	free (Output);
+	free (Input);
 	cudaFree     (dev_out);
 	cudaFree     (dev_in);
 }
@@ -75,10 +73,16 @@ void compute_vector()
 	cudaMemcpy ( dev_in, Input, sizeof(cufftDoubleReal) * COLUMNS, cudaMemcpyHostToDevice);
 	checkCudaErrors(cudaGetLastError());
 	
+	// set dev_out to negative zero to catch holes transform
+	for (indx = 0; indx < ROWS; indx++) {
+		Output[indx] = nzero;
+	}
+	cudaMemcpy(dev_out, Output, sizeof(cufftDoubleReal) * ROWS, cudaMemcpyHostToDevice);
+	checkCudaErrors(cudaGetLastError());
+		
+	// set Output to -Inf to catch incomplete copies
 	for (indx = 0; indx < ROWS; indx++) {
 		Output[indx] = (double)-INFINITY;
-		cudaMemcpy(&dev_out[indx], &nzero, sizeof(cufftDoubleReal), cudaMemcpyHostToDevice);
-		checkCudaErrors(cudaGetLastError());
 	}
 
 	FUNC(dev_out, dev_in);
