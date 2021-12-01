@@ -1070,6 +1070,7 @@ Obj FunBuildInfo(Obj hdCall) {
 #else
     Pr("CMakeBuildType : %s\n", SPIRAL_BUILD_TYPE, 0);
 #endif
+	Pr("CMakeVersion : %s\n", SPIRAL_CMAKE_VERSION, 0);
     return HdVoid;
 }
 
@@ -1308,6 +1309,22 @@ Bag FunExit( Bag hdCall ) {
 }
 
 
+/****************************************************************************
+**
+*F  IsWindows()
+**
+** returns true if built for Windows
+*/
+
+Obj FunIsWindows(Obj hdCall) {
+#ifdef WIN32
+    return HdTrue;
+#else
+    return HdFalse;
+#endif
+}
+
+
 
 /****************************************************************************
 **
@@ -1376,6 +1393,7 @@ void            InitSPIRAL (void) {
     InstIntFunc( "PathRelativeToSPIRAL",  FunPathRelativeToSPIRAL );
 	InstIntFunc( "Version", FunVersion);
 	InstIntFunc( "BuildInfo", FunBuildInfo);
+    InstIntFunc( "IsWindows", FunIsWindows);
     IdentAssign( "NULL", HdVoid);
     IdentAssign( "HdStack", HdStack);
     InstIntFunc( "HdExec",  FunHdExec);
