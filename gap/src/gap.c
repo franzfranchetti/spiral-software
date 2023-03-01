@@ -43,23 +43,22 @@
 #include        "namespaces.h"          /* InitNamespaces                  */
 #include        "args.h"
 
-#include        "interface.h"           /* New Spiral Interface            */
 #include        "iface.h"               
 #include        "tables.h"
 #include        "debug.h"
 #include		"GapUtils.h"
 
 
-extern Bag                  HdStack;
+extern Bag         HdStack;
 extern UInt        TopStack;
-
-int CURR_INTERFACE = DEFAULT_INTERFACE;
-int LAST_INTERFACE = DEFAULT_INTERFACE;
 
 int ERROR_QUIET = 0;
 int BACKTRACE_DEFAULT_LEVEL = 5;
 /*V HdLastErrorMsg */
 Obj HdLastErrorMsg;
+
+// Global error counter
+int ErrorCount = 0;
 
 /****************************************************************************
 **
@@ -110,27 +109,21 @@ Int         DbgInBreakLoop = 0;
 **  expression, evaluates it and prints the value.  This continues until  the
 **  end of the input file.
 */
+
+
+extern void  InitGap(int argc, char** argv, int* stackBase);
+
 int             main (int argc, char **argv)
 {
-    extern void         InitGap (int argc, char **argv, int *stackBase);
     exc_type_t          e;
+    int exec_status, i;
+    char input[4096];
+    char output[4096];
 
-   
-    /* Save this information to reset */
-    CURR_INTERFACE = DEFAULT_INTERFACE;
-    interface_save_args(argc, argv);
- 
-	/*************************************************************************/
-	/* printf("message from gap...\n");										 */
-	/* char *p;																 */
-	/* Int n = 50 * sizeof(char *);											 */
-	/* p = (char *)malloc(n);												 */
-	/* strcpy(p, "1234567890ABCDEF FEDCBA0987654321");						 */
-	/* printf("# bytes allocated = %d, ptr = %X, value = %s\n", n, p, p);	 */
-	/*************************************************************************/
+    for (i = 0; i < 4096; ++i) {
+        input[i] = output[i] = 0;
+    }
 
-	GapRunTime.gap_start = clock();
-	
     Try {
 		/* initialize everything                                             */
 		InitGap( argc, argv, &argc );
@@ -140,10 +133,13 @@ int             main (int argc, char **argv)
 		return 1;
     }
 
+    GapRunTime.gap_start = SyTime();
+
     Try { 
 		HookSessionStart(); 
     }
     Catch(e) {
+        ErrorCount++;
 		/* exceptions raised using Error() are already printed at this point */
 		if(e!=ERR_GAP) 
 		{ 
@@ -158,8 +154,11 @@ int             main (int argc, char **argv)
     /* Load static history buffer */
     SyLoadHistory();
  
-    /* Start Interface Main Evaluation here */
-    start_interface(CURR_INTERFACE);
+    /* main evaluation loop */
+    exec_status = EXEC_SUCCESS;
+    while (exec_status != EXEC_QUIT) {
+        exec_status = execute(input, output);
+    }
  
     /* Write static history buffer */
     SySaveHistory();
@@ -168,6 +167,7 @@ int             main (int argc, char **argv)
 		HookSessionEnd();
     }
     Catch(e) {
+        ErrorCount++;
 		/* exceptions raised using Error() are already printed at this point */
 		if(e!=ERR_GAP) 
 		{ 
@@ -179,16 +179,14 @@ int             main (int argc, char **argv)
 		}
     }
 
-	//  GapRunTime.gap_end = clock();
-	//  PrintRuntimeStats(&GapRunTime);
-	
-     /* exit to the operating system, the return is there to please lint    */
-    if (NrHadSyntaxErrors && (LAST_INTERFACE == ID_BATCH)) 
-        SyExit(SYEXIT_WITH_SYNTAX_ERRORS);
-    else
+    if (ErrorCount == 0) {
         SyExit(SYEXIT_OK);
-
-    return SYEXIT_OK;
+        return SYEXIT_OK;
+    }
+    else {
+        SyExit(1);
+        return(1);
+    }
 }
 
 /****************************************************************************
@@ -619,6 +617,8 @@ Bag       Error (char *msg, Int arg1, Int arg2)
 	Int           isBreakpoint;
     Int           debugActive;
 
+    ErrorCount++;
+
 	if ( ! ERROR_QUIET ) {
 
 		/* open the standard error output file                                */
@@ -681,7 +681,7 @@ Bag       Error (char *msg, Int arg1, Int arg2)
 			parent = Input;
 
 #ifdef _DEBUG
-            debugActive = true;
+            debugActive = 1;
 #else
             debugActive = (InDebugMode != 0);
 #endif
@@ -703,11 +703,6 @@ Bag       Error (char *msg, Int arg1, Int arg2)
 				} Catch(e) { if (e != ERR_GAP) { LeaveDbgStack(); Throw(e); } }
 				/* now enter a read-eval-print loop, just as in main               */
 				while ( Symbol != S_EOF ) {
-					if (CURR_INTERFACE == ID_BATCH) {
-						/* inconsistency in interfaces: ReadIt ignoring interfaces,
-						quit from here if we are in batch interface */
-						SyExit(SYEXIT_FROM_BRK);
-					}
 					/* read an expression                                          */
 					if (InBreakpoint) {
 						Prompt = DbgPrompt; 
@@ -753,11 +748,6 @@ Bag       Error (char *msg, Int arg1, Int arg2)
 				/* remove function definitions from the stack and close "*errin*"  */
 				LeaveDbgStack();
 				ignore = CloseInput();
-			} else {
-				if (CURR_INTERFACE == ID_BATCH) {
-					/* quit with the first error */
-					SyExit(SYEXIT_FROM_BRK);
-				}
 			}
 
 			while ( HdExec != 0 )  ChangeEnv( PTR_BAG(HdExec)[4], CEF_CLEANUP );
@@ -1521,30 +1511,6 @@ Bag       FunSizeScreen (Bag hdCall)
 
 /****************************************************************************
 **
-*F  FunTmpName( <hdCall> )  . . . . . . . . . . . internal function 'TmpName'
-**
-**  'TmpName()' returns a file names that can safely be used for a temporary
-**  file.  It returns 'false' in case of failure.
-*/
-Bag	FunTmpName (Bag hdCall)
-{
-    Bag       hdStr;
-    char          * str;
-
-    if ( GET_SIZE_BAG(hdCall) != SIZE_HD )
-	return Error( "usage: TmpName()", 0, 0 );
-    str = SyTmpname();
-    if ( str == (char*)0 )
-	return HdFalse;
-    hdStr = NewBag( T_STRING, strlen(str)+1 );
-    *((char*)PTR_BAG(hdStr)) = 0;
-    strncat( (char*)PTR_BAG(hdStr), str, strlen(str) );
-    return hdStr;
-}
-
-
-/****************************************************************************
-**
 *F  FunIsIdentical( <hdCall> )  . . . . . . . internal function 'IsIdentical'
 **
 **  'FunIsIdentical' implements 'IsIdentical'
@@ -2110,7 +2076,6 @@ void            InitGap (int argc, char** argv, int* stackBase) {
     InstIntFunc( "IntExec",     FunIntExec     );
     InstIntFunc( "Runtime",     FunRuntime     );
     InstIntFunc( "SizeScreen",  FunSizeScreen  );
-    InstIntFunc( "TmpName",     FunTmpName     );
     InstIntFunc( "IsIdentical", FunIsIdentical );
     InstIntFunc( "HANDLE",      FunHANDLE      );
     InstIntFunc( "OBJ",         FunOBJ         );
@@ -2123,7 +2088,6 @@ void            InitGap (int argc, char** argv, int* stackBase) {
 
     InstIntFunc( "WeakRef",     FunWeakRef   );
     InstIntFunc( "TabToList",   FunTabToList );
-    /*N  15-Jan-91 martin this function should not be here                 */
     InstIntFunc( "CoefficientsInt", FunCoefficients );
 
 	InitMemMgrFuncs();

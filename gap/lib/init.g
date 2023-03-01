@@ -92,21 +92,6 @@ FileManager := rec(
     addFile := (self,f) >> Add(self.files, f)
 );
 
-ProgressBar := rec(
-     __call__ := (self, events_per_dot) >> 
-         _moveBasesUp(rec(__bases__ := [self], n:=0, events_per_dot:=events_per_dot, done:=false)),
-
-    advance := meth(self)
-        self.n := self.n + 1;
-	if not self.done and (self.n mod self.events_per_dot = 0) then
-	    PrintTo("*errout*", "."); 
-	fi;
-    end
-);
-     
-_fileProgress := ProgressBar(10);
-
-Add(HooksAfterOpenInput, arg -> _fileProgress.advance());
 Add(HooksAfterOpenInput, function(arg) CurrentFile().id := false; end);
 
 WarnUndefined := function(path, pkg)
@@ -132,13 +117,9 @@ function(arg)
     ClearCommentBuffer();
 end);
 
-##  CVSID := function(cvs_id)
-##      CurrentFile().id := cvs_id;
-##  end;
 
-VERLIB := "v3r4p4 1997/04/18";
-
-PATH_SEP := config_val_t_strval_get(config_demand_val("path_sep"));
+PATH_SEP := PathSep();
+SPIRAL_DIR := GetEnv("SPIRAL_DIR");
 
 Global.SpiralVersion := Version();
 
@@ -313,9 +294,6 @@ AUTO( ReadLib( "abattoir" ),
   Save, SetPkgname, PKGNAME, LOADED_PACKAGES, ReadPkg, ExecPkg, LoadPackage,
   RequirePackage, IsOperationsRecord, OpsOps, OperationsRecord, EXEC,
   False, True, PrintFactorsInt );
-
-AUTO( ReadLib("sys_conf"),
-    Conf );
 
 AUTO( ReadLib( "agcent" ),
   MainEntryCSAgGroup, CentralCaseCentAgGroup, GeneralCaseCentAgGroup,
@@ -1046,39 +1024,6 @@ AUTO( ReadGrp( "trans" ),
   SetSetOrbits, OrbNEq, CntOp, TransitiveIdentification,
   SelectTransitiveGroups, AllTransitiveGroups, OneTransitiveGroup );
 
-#AUTO( ReadTwo( "twogp" ),
-#  TGParts, TGLoad, TGGroup, TwoGroup, pClass, AllTwoGroups, OneTwoGroup );
-#
-#AUTO( ReadThr( "thrgp" ),
-#  ThGParts, ThGLoad, ThGGroup, ThreeGroup, AllThreeGroups, OneThreeGroup );
-#
-#AUTO( ReadTbl( "ctadmin" ),
-#  TABLEFILENAME, LIBTABLE, SET_TABLEFILENAME, GALOIS, TENSOR, EvalChars, MBT,
-#  MOT, LowercaseString, NotifyCharTableName, NotifyCharTable,
-#  LibInfoCharTable, FirstNameCharTable, FileNameCharTable, ALN, ALF, ACM, ARC,
-#  ConstructMixed, ConstructProj, ConstructDirectProduct, ConstructIsoclinic,
-#  ConstructV4G, ConstructGS3, ConstructPermuted, ConstructSubdirect,
-#  UnpackedCll, CllToClf, ConstructClifford, BrauerTree, DecMat,
-#  BasicSetBrauerTree, AddDecMats, PartsBrauerTableName, BrauerTable,
-#  LibraryTables, CharTableLibrary, OfThose, IsSporadicSimple, SchurCover,
-#  AllCharTableNames, ShrinkClifford, TextString, BlanklessPrint, ShrinkChars,
-#  ClfToCll, PrintFusion, PrintToLib, PrintClmsToLib );
-#
-#AUTO( ReadTbl( "ctprimar" ),
-#  LIBLIST );
-#
-#AUTO( ReadTom( "tmprimar" ),
-#  TOM, TOMLIST, TomLibrary );
-#
-#AUTO( ReadSml( "idgroup.sml" ),
-#  AgGroupCode, CodeAgGroup, InitRandomIsomorphismChecking, RandomSpecialPres,
-#  RandomIsomorphismChecking, IdGroupRandomTest, IdGroupSpecialFp, EvalFpCoc,
-#  IdSmallGroup, IdP1Q1R1Group, IdP2Q1Group, IdP1Q2Group, IdP1Group, IdP2Group,
-#  IdP3Group, IdP1Q1Group, IdGroup );
-#
-#AUTO( ReadSml( "smallgrp.sml" ),
-#  Codes1000, PermGroupCode, AgGroupCode, GroupCode, LoadSmallGroups,
-#  UnloadSmallGroups, SmallGroup, AllSmallGroups, NumberSmallGroups );
 
 # load packages
 
@@ -1104,8 +1049,6 @@ CantCopy(Cyclotomics);
 CantCopy(Integers);
 
 Concat:=ConcatenationString;
-QUOTIFY := file_quotify_static;
-RandomSeed(TimeInSecs());
 
 # Info Lattice
 # ------------
@@ -1114,6 +1057,5 @@ if not IsBound(InfoLatticeSpiral) then
   InfoLatticeSpiral := Ignore;
 fi;
 
-Read(Concat(Conf("spiral_dir"), Conf("path_sep"), "namespaces", Conf("path_sep"), "init.g"));
+Read(Concat(SPIRAL_DIR, PATH_SEP, "namespaces", PATH_SEP, "init.g"));
 
-_fileProgress.done := true;

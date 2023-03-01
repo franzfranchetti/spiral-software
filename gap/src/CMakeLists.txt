@@ -70,11 +70,9 @@ set(SOURCES
     eval.c
     spiral_delay_ev.c
     spiral_fft.c
-    spiral_spl_prog.c
     spiral.c
     globals.c
     fft.c
-    sys_conf_wrap.c
     args.c
     comments.c
     type_wrap.c
@@ -85,13 +83,8 @@ set(SOURCES
     double.c
     complex.c
     lex.yy.c
-    interface.c
     buf_list.c
     iface.c
-    iface_table.c
-    iface_original.c
-    iface_console.c
-    iface_batch.c
     debug.c
     md5.c
     hash.c
@@ -151,14 +144,8 @@ set(SOURCES
     idents.h
     ieee754.h
     iface.h
-    iface_batch.h
-    iface_console.h
-    iface_original.h
-    iface_tcpip.h
     integer.h
     integer4.h
-    interface.h
-    ipc.h
     list.h
     machine_endian.h
     md5.h
@@ -181,7 +168,6 @@ set(SOURCES
     spiral_delay_ev.h
     spiral_fft.h
     spiral_fft.h
-    spiral_spl_prog.h
     statemen.h
     string4.h
     system.h
@@ -193,11 +179,6 @@ set(SOURCES
     vector.h
     word.h
 )
-
-##  Additional modules to compile when not on Windows...
-if (!WIN32)
-    list(APPEND SOURCES iface_tcpip.c ipc.c)
-endif()
 
 add_executable(${PROJECT} ${SOURCES})
 set_property ( TARGET ${PROJECT} PROPERTY CUDA_ARCHITECTURES OFF)

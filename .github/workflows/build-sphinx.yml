@@ -8,7 +8,9 @@ env:
 ##  For now only re-gen docs when push to "develop" branch; change to "master" when release is done
 on:
   push:
-    branches: [master]
+    branches:
+      - master
+      - develop
 
 jobs:
   build_sphinx_job:
@@ -19,7 +21,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: spiral-software/spiral-software
-        ref: master
+        ref: develop
         path: spiral
 
     - name: install dependencies
@@ -31,7 +33,7 @@ jobs:
         export DEBIAN_FRONTEND=noninteractive
         sudo apt-get -qqq update
         sudo apt-get install -y build-essential ca-certificates cmake pkg-config wget
-        sudo apt-get install -y python3.8
+        sudo apt-get install -y python3
         sudo apt-get install -y python3-pip
         pip install -U Sphinx 
         PATH=$PATH:/home/runner/.local/bin
