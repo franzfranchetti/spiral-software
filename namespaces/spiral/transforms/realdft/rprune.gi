@@ -289,7 +289,7 @@ Class(IOPrunedMDRConv, TaggedNonTerminal, rec(
     isReal    := self >> true,
     normalizedArithCost := self >> let(n := self.params[1], IntDouble(5 * n * d_log(n) / d_log(2))),
     TType := TReal,
-    terminate := self >> When(self.params[7],
+    terminate := self >> When((IsFunc(self.params[7]) and self.params[7]()) or self.params[7],
                             let(nlist := self.params[1],
                                 n := nlist[1],
                                 nfreq := n/2+1,
