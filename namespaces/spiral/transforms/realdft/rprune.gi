@@ -314,7 +314,8 @@ Class(IOPrunedMDRConv, TaggedNonTerminal, rec(
                                 gfd := List(1/Product(nlist) * MatSPL(MDDFT(nlist, 1)) * self.params[2].list, i->ComplexAny(_unwrap(i))),
                                 gdiagr := RC(Diag(gfd)),
                                 t := gath3d * idft3dr * gdiagr * dft3dr * scat3d,
-                                t.terminate()
+                                t
+                                #t.terminate()
                             )
                         ),
     hashAs := self >> ApplyFunc(ObjId(self), [self.params[1], fUnk(self.params[2].range(), self.params[2].domain())]::Drop(self.params, 2))
