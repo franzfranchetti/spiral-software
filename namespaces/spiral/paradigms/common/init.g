@@ -15,6 +15,7 @@ Include(gtdft);
 Include(breakdown);
 Include(twiddle);
 Include(dft);
+Include(mddft);
 Include(dftpease);
 Include(wht);
 Include(dct);

@@ -7,6 +7,8 @@ REM  Use cmake to build the project (PROJECT=time) for CUDA language (SUFFIX=cu)
 
 set SGBETEMPDIR=%cd%
 COPY ..\..\targets\common\CMakeLists.txt %SGBETEMPDIR%\CMakeLists.txt
+COPY testcode.* C:\Users\franzf\Documents\Spiral\output\spiralprofiler
+
 RENAME testcode.c testcode.cu
 IF EXIST .\build ( rd /s /q build )
 md build && cd build
@@ -19,3 +21,5 @@ IF EXIST .\time.exe (
 ) ELSE (
     type nul > time.txt
 )
+
+
