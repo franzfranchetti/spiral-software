@@ -6,9 +6,9 @@
 #F SinDFT( <size> )
 #F
 Class(SinDFT, NonTerminal, rec(
-    abbrevs   := [ n -> Checked(IsInt(n), n > 0, n) ],
-    dims      := self >> [ self.params, self.params ],
-    terminate := self >> Mat(Global.SinDFT(self.params)),
+    abbrevs   := [ n -> Checked(IsInt(n), n > 0, [n]) ],
+    dims      := self >> [ self.params[1], self.params[1] ],
+    terminate := self >> let(N := self.params[1], Mat(List([0..N-1], i -> List([0..N-1], j -> SinPi(2*i*j/N))))),
     transpose := self >> self,
     isReal    := True
 ));
@@ -16,9 +16,9 @@ Class(SinDFT, NonTerminal, rec(
 #F CosDFT( <size> )
 #F
 Class(CosDFT, NonTerminal, rec(
-    abbrevs   := [ n -> Checked(IsInt(n), n > 0, n) ],
-    dims      := self >> [ self.params, self.params ],
-    terminate := self >> Mat(Global.CosDFT(self.params)),
+    abbrevs   := [ n -> Checked(IsInt(n), n > 0, [n]) ],
+    dims      := self >> [ self.params[1], self.params[1] ],
+    terminate := self >> let(N := self.params[1], Mat(List([0..N-1], i -> List([0..N-1], j -> CosPi(2*i*j/N))))),
     transpose := self >> self,
     isReal    := True
 ));
