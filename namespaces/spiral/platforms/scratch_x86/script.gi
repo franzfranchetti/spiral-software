@@ -51,7 +51,7 @@ scriptDFT := function(val1, val2, val3, val4, val5, val6)
 end;
 
 scriptRunWHT := function(wht_size, name)
-             local opts, t, rt;
+             local opts, t, rt, i;
              
              ImportAll(paradigms.scratchpad);
 
@@ -72,7 +72,7 @@ scriptRunWHT := function(wht_size, name)
 end;
 
 scriptRunDFT := function(dft_size, name)
-             local opts, t, rt;
+             local opts, t, rt, i;
              
              ImportAll(paradigms.scratchpad);
 

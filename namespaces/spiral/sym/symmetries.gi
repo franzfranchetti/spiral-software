@@ -6,7 +6,7 @@
 # equality of scalars
 scalareq := (a,b) -> AbsFloat(a-b) < 1e-10;
 # equality of lists
-lseq := (a,b) -> Length(a)=Length(b) and ForAll([1..Length(a)], scalareq(a[i], b[i]));
+lseq := (a,b) -> Length(a)=Length(b) and ForAll([1..Length(a)], i->scalareq(a[i], b[i]));
 
 lequiv := (a,b) -> Cond(
     lseq(a,b),   "eq", 
