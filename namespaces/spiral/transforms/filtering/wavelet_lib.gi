@@ -49,8 +49,9 @@ g:=Polynomial(Cyclotomics,gc,-2);
 
 h.name:="Daub97lo";
 g.name:="Daub97hi";
-g.operations := CopyFields(g.operations, rec(Print:=self >> Print(self.name)));
-h.operations := CopyFields(h.operations, rec(Print:=self >> Print(self.name)));
+# FIXME: this breaks GAP's polynomials as it wipes things--needs to be fixed
+#g.operations := CopyFields(g.operations, rec(Print:=self >> Print(self.name)));
+#h.operations := CopyFields(h.operations, rec(Print:=self >> Print(self.name)));
 
 Daub97 := [h,g];
 
@@ -82,8 +83,9 @@ gc:=[1/4, -1/2, 1/4];
 
 h:=Polynomial(Rationals,hc,-2);
 g:=Polynomial(Rationals,gc,0);
-g.operations.Print:=self >> Print(self.name);
-h.operations.Print:=self >> Print(self.name);
+# FIXME: this breaks GAP's polynomials as it wipes things--needs to be fixed
+#g.operations.Print:=self >> Print(self.name);
+#h.operations.Print:=self >> Print(self.name);
 
 h.name:="rat53lo";
 g.name:="rat53hi";
