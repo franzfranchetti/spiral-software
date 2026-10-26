@@ -274,5 +274,7 @@ static inline __uint64_t _addq(__uint64_t a, __uint64_t b) { return a + b; }
 #define COSPI(out, x, n) ((out) = cos(PI * (double)(x) / (double)(n)))
 #define SINPI(out, x, n) ((out) = sin(PI * (double)(x) / (double)(n)))
 
+#define FRAC_PI(out, x, n) ((out) = (PI * (double)(x) / (double)(n)))
+
 #endif
 
